@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Guard | Real-Time Transaction Risk Engine</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <!-- Clean typography: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+    <!-- Global App Header -->
+    <header class="app-header">
+        <div class="header-brand">
+            <div class="brand-symbol">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <path d="m9 12 2 2 4-4"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="brand-heading">FraudGuard Engine</h1>
+                <p class="brand-sub">Real-Time Stream Processing & ML Guardrails</p>
+            </div>
+            <div class="live-pill" id="live-indicator">
+                <span class="live-dot"></span>
+                <span id="live-text">STREAMING LIVE</span>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <div class="telemetry-pill">
+                <span class="pill-label">Pipeline SLA</span>
+                <span class="pill-value" id="telemetry-latency">~3.2ms</span>
+            </div>
+
+            <div class="rate-selector">
+                <label for="select-stream-tps">Rate:</label>
+                <select id="select-stream-tps">
+                    <option value="1">1 txn/sec</option>
+                    <option value="2">2 txn/sec</option>
+                    <option value="5" selected>5 txn/sec</option>
+                </select>
+            </div>
+
+            <button id="btn-toggle-stream" class="btn btn-secondary">
+                <span id="stream-toggle-text">Pause Stream</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="app-canvas">
+
+        <!-- Executive Metrics Row -->
+        <section class="kpi-banner">
+            <div class="kpi-cell">
+                <span class="kpi-label">Volume Processed</span>
+                <div class="kpi-number" id="kpi-val-total-volume">$0.00</div>
+                <span class="kpi-foot" id="kpi-val-total-count">0 total transactions</span>
+            </div>
+
+            <div class="kpi-cell">
+                <span class="kpi-label">Fraud Loss Prevented</span>
+                <div class="kpi-number text-blocked" id="kpi-val-fraud-saved">$0.00</div>
+                <span class="kpi-foot" id="kpi-val-blocked-count">0 attacks blocked</span>
+            </div>
+
+            <div class="kpi-cell">
+                <span class="kpi-label">Detection Rate</span>
+                <div class="kpi-number text-warning" id="kpi-val-fraud-rate">0.0%</div>
+                <span class="kpi-foot"><strong id="kpi-val-review-count">0</strong> flagged for review</span>
+            </div>
+
+            <div class="kpi-cell">
+                <span class="kpi-label">Decision SLA</span>
+                <div class="kpi-number text-success" id="kpi-val-avg-latency">0.0 ms</div>
+                <span class="kpi-foot">Feature Store + ML Scoring</span>
+            </div>
+        </section>
+
+        <!-- Guardrails & Condition Definitions Strip -->
+        <section class="guardrails-strip">
+            <div class="guardrails-header">
+                <div>
+                    <h2 class="guardrails-title">Fraud Guardrails & Conditions</h2>
+                    <p class="guardrails-sub">Every incoming transaction is evaluated against these 5 rules in real time. Click any card to simulate a violation:</p>
+                </div>
+            </div>
+
+            <div class="guardrails-grid">
+                <!-- Condition Card 1 -->
+                <div class="rule-card" data-attack="IMPOSSIBLE_TRAVEL" title="Click to test Impossible Travel violation">
+                    <div class="rule-top">
+                        <span class="rule-icon">✈️</span>
+                        <span class="rule-badge">Speed Check</span>
+                    </div>
+                    <div class="rule-name">Geographic Travel Velocity</div>
+                    <div class="rule-threshold">Threshold: <code>≤ 800 km/h</code></div>
+                    <div class="rule-action">Click to Test Violation ➔</div>
+                </div>
+
+                <!-- Condition Card 2 -->
+                <div class="rule-card" data-attack="VELOCITY_BURST" title="Click to test Velocity Burst violation">
+                    <div class="rule-top">
+                        <span class="rule-icon">⚡</span>
+                        <span class="rule-badge">Frequency Check</span>
+                    </div>
+                    <div class="rule-name">5-Minute Burst Pacing</div>
+                    <div class="rule-threshold">Threshold: <code>≤ 2 txns / 5m</code></div>
+                    <div class="rule-action">Click to Test Violation ➔</div>
+                </div>
+
+                <!-- Condition Card 3 -->
+                <div class="rule-card" data-attack="SUDDEN_SPIKE" title="Click to test Spending Spike violation">
+                    <div class="rule-top">
+                        <span class="rule-icon">📈</span>
+                        <span class="rule-badge">Amount Anomaly</span>
+                    </div>
+                    <div class="rule-name">Spending Baseline Ratio</div>
+                    <div class="rule-threshold">Threshold: <code>&lt; 8.0x 30-day mean</code></div>
+                    <div class="rule-action">Click to Test Violation ➔</div>
+                </div>
+
+                <!-- Condition Card 4 -->
+                <div class="rule-card" data-attack="CRYPTO_DRAIN" title="Click to test Untrusted Device violation">
+                    <div class="rule-top">
+                        <span class="rule-icon">🛡️</span>
+                        <span class="rule-badge">Hardware Trust</span>
+                    </div>
+                    <div class="rule-name">Device & Merchant Exposure</div>
+                    <div class="rule-threshold">Threshold: <code>Known Hardware ID</code></div>
+                    <div class="rule-action">Click to Test Violation ➔</div>
+                </div>
+
+                <!-- Condition Card 5 -->
+                <div class="rule-card" data-attack="MICRO_PROBE" title="Click to test ML Isolation Outlier violation">
+                    <div class="rule-top">
+                        <span class="rule-icon">🤖</span>
+                        <span class="rule-badge">AI / ML Outlier</span>
+                    </div>
+                    <div class="rule-name">Isolation Forest Anomaly</div>
+                    <div class="rule-threshold">Threshold: <code>Outlier &lt; 70%</code></div>
+                    <div class="rule-action">Click to Test Violation ➔</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Master-Detail Workspace -->
+        <div class="master-detail-grid">
+            
+            <!-- Left: Transaction Stream (Master) -->
+            <section class="pane stream-pane">
+                <div class="pane-header">
+                    <div class="pane-title-group">
+                        <h2 class="pane-title">Live Transactions</h2>
+                        <span class="count-pill" id="feed-count-pill">Live Feed</span>
+                    </div>
+                    <div class="pane-actions">
+                        <span class="text-caption">Click any transaction to inspect conditions</span>
+                        <button id="btn-clear-feed" class="btn-link">Clear</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="stream-table">
+                        <thead>
+                            <tr>
+                                <th>Decision</th>
+                                <th>Time</th>
+                                <th>Cardholder</th>
+                                <th>Merchant</th>
+                                <th>Amount</th>
+                                <th>Guardrail Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-feed-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Right: Condition Audit & Sandbox (Detail) -->
+            <aside class="pane detail-pane">
+                
+                <!-- Tab Navigation -->
+                <div class="tab-header">
+                    <button class="tab-btn active" id="tab-audit-btn">
+                        📋 Condition Audit
+                    </button>
+                    <button class="tab-btn" id="tab-sandbox-btn">
+                        🧪 Test Sandbox
+                    </button>
+                </div>
+
+                <!-- Tab 1: Live Condition Audit View -->
+                <div class="tab-content" id="tab-audit-content">
+                    
+                    <!-- Selected Transaction Summary Banner -->
+                    <div class="decision-banner" id="decision-banner">
+                        <div class="banner-top">
+                            <div class="customer-info">
+                                <div class="customer-avatar" id="customer-avatar">AZ</div>
+                                <div>
+                                    <div class="customer-name" id="selected-customer-name">Select a transaction</div>
+                                    <div class="customer-meta" id="selected-customer-meta">Click a row on the left to see full condition breakdown</div>
+                                </div>
+                            </div>
+                            <div id="selected-decision-pill">
+                                <span class="badge badge-neutral">STANDBY</span>
+                            </div>
+                        </div>
+
+                        <div class="banner-bottom">
+                            <div class="banner-metric">
+                                <span class="metric-caption">TRANSACTION AMOUNT</span>
+                                <div class="metric-val" id="selected-amount">$0.00</div>
+                            </div>
+                            <div class="banner-metric">
+                                <span class="metric-caption">RISK SCORE</span>
+                                <div class="metric-val" id="selected-risk-score">-- / 100</div>
+                            </div>
+                            <div class="banner-metric">
+                                <span class="metric-caption">EVALUATION SLA</span>
+                                <div class="metric-val" id="selected-sla">-- ms</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5 Evaluated Condition Cards -->
+                    <div class="condition-checklist-block">
+                        <div class="checklist-header">
+                            <span>RULE EVALUATION BREAKDOWN (5/5 CHECKED)</span>
+                            <span class="help-text">Threshold vs Actual</span>
+                        </div>
+                        <div class="condition-cards-container" id="condition-cards-container">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Tab 2: Interactive Sandbox View -->
+                <div class="tab-content hidden" id="tab-sandbox-content">
+                    
+                    <div class="sandbox-header">
+                        <h3 class="sandbox-title">Transaction Simulator</h3>
+                        <p class="sandbox-desc">Test custom scenarios against the 5 guardrails to inspect how the model responds.</p>
+                    </div>
+
+                    <!-- Quick Preset Scenarios -->
+                    <div class="presets-block">
+                        <span class="preset-label">Quick Preset Scenarios:</span>
+                        <div class="preset-buttons">
+                            <button type="button" class="btn-preset" data-preset="normal">
+                                ☕ Normal Coffee ($4.50)
+                            </button>
+                            <button type="button" class="btn-preset" data-preset="flight">
+                                ✈️ Impossible Flight ($1,250)
+                            </button>
+                            <button type="button" class="btn-preset" data-preset="spike">
+                                📈 Luxury Spree ($4,800)
+                            </button>
+                            <button type="button" class="btn-preset" data-preset="crypto">
+                                🪙 Crypto Drain ($3,200)
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="sandbox-form" onsubmit="return false;" class="sandbox-form">
+                        <div class="form-row">
+                            <div class="form-field flex-1">
+                                <label for="sandbox-user">Cardholder</label>
+                                <select id="sandbox-user" class="form-control">
+                                    <!-- Populated from /api/users -->
+                                </select>
+                            </div>
+                            <div class="form-field flex-1">
+                                <label for="sandbox-amount">Amount ($ USD)</label>
+                                <input type="number" id="sandbox-amount" class="form-control" value="48.50" step="5">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-field flex-1">
+                                <label for="sandbox-merchant">Merchant Name</label>
+                                <input type="text" id="sandbox-merchant" class="form-control" value="Starbucks Coffee">
+                            </div>
+                            <div class="form-field flex-1">
+                                <label for="sandbox-category">Category</label>
+                                <select id="sandbox-category" class="form-control">
+                                    <option value="dining">Dining / Coffee (Standard)</option>
+                                    <option value="grocery">Grocery (Standard)</option>
+                                    <option value="digital_services">Digital Services</option>
+                                    <option value="electronics">Electronics (High Risk)</option>
+                                    <option value="luxury_goods">Luxury Goods (High Risk)</option>
+                                    <option value="crypto">Crypto Exchange (Critical Risk)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-field flex-1">
+                                <label for="sandbox-city">Transaction Location</label>
+                                <select id="sandbox-city" class="form-control">
+                                    <option value="New York" data-country="USA" data-lat="40.7128" data-lon="-74.0060">New York, USA (Local)</option>
+                                    <option value="London" data-country="UK" data-lat="51.5074" data-lon="-0.1278">London, UK (5,500 km away)</option>
+                                    <option value="Tokyo" data-country="Japan" data-lat="35.6762" data-lon="139.6503">Tokyo, Japan (10,800 km away)</option>
+                                    <option value="Lagos" data-country="Nigeria" data-lat="6.5244" data-lon="3.3792">Lagos, Nigeria (8,500 km away)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-checkbox">
+                            <label class="check-container">
+                                <input type="checkbox" id="sandbox-new-device">
+                                <span class="check-box"></span>
+                                <span>Simulate untrusted hardware / unrecognized device fingerprint</span>
+                            </label>
+                        </div>
+
+                        <button type="button" id="btn-submit-sandbox" class="btn btn-primary btn-block">
+                            Run Guardrail Evaluation
+                        </button>
+                    </form>
+
+                </div>
+
+            </aside>
+
+        </div>
+
+    </main>
+
+    <!-- Scripts -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
