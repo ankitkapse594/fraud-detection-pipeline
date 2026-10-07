@@ -336,6 +336,58 @@
 
     </main>
 
+    <!-- Floating AI Assistant Button (Bottom-Right) -->
+    <div class="ai-fab-container">
+        <button id="ai-fab-button" class="ai-fab" title="Open RAG AI Assistant">
+            <span class="ai-fab-icon">✨</span>
+            <span class="ai-fab-label">AI Assistant</span>
+            <span class="ai-rag-badge">RAG</span>
+        </button>
+    </div>
+
+    <!-- AI Assistant Chat Widget Drawer -->
+    <div id="ai-chat-drawer" class="ai-chat-drawer hidden">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar">✨</div>
+                <div>
+                    <h3 class="chat-title">FraudGuard AI Assistant</h3>
+                    <p class="chat-subtitle">RAG Engine • Grounded in <code>README.md</code></p>
+                </div>
+            </div>
+            <button id="btn-close-chat" class="chat-close-btn">&times;</button>
+        </div>
+
+        <div class="chat-body" id="chat-messages-container">
+            <div class="chat-message bot-message">
+                <div class="msg-bubble">
+                    👋 <strong>Hello!</strong> I am your AI assistant. I use <strong>Markdown RAG (Retrieval-Augmented Generation)</strong> to retrieve architecture, rules, and SLA information directly from the project's documentation (<code>README.md</code>) without requiring an external vector DB.
+                </div>
+            </div>
+
+            <!-- Quick Suggestions -->
+            <div class="chat-suggestions" id="chat-suggestions">
+                <span class="suggestions-label">Try asking:</span>
+                <div class="chips-row">
+                    <button class="chip-btn" data-query="What are the 5 guardrails?">What are the 5 guardrails?</button>
+                    <button class="chip-btn" data-query="How does Impossible Travel work?">How does Impossible Travel work?</button>
+                    <button class="chip-btn" data-query="Explain the Medallion Lakehouse">Explain Medallion Lakehouse</button>
+                    <button class="chip-btn" data-query="What is the pipeline SLA?">What is the pipeline SLA?</button>
+                </div>
+            </div>
+        </div>
+
+        <form id="chat-form" class="chat-input-bar" onsubmit="return false;">
+            <input type="text" id="chat-input" placeholder="Ask about guardrails, models, SLA, Lakehouse..." autocomplete="off">
+            <button type="submit" id="btn-send-chat" class="btn-chat-send" title="Send Question">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </form>
+    </div>
+
     <!-- Scripts -->
     <script src="/static/js/app.js"></script>
 </body>

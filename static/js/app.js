@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initWebSocket();
     initControls();
     initPresets();
+    initAIAssistant();
     loadUsers();
 });
 
@@ -418,4 +419,103 @@ async function runSandbox() {
         btn.disabled = false;
         btn.textContent = 'Run Guardrail Evaluation';
     }
+}
+
+/* ==========================================================================
+   RAG AI Assistant Client
+   ========================================================================== */
+function initAIAssistant() {
+    const fab = document.getElementById('ai-fab-button');
+    const drawer = document.getElementById('ai-chat-drawer');
+    const closeBtn = document.getElementById('btn-close-chat');
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('chat-input');
+
+    if (!fab || !drawer) return;
+
+    fab.addEventListener('click', () => {
+        drawer.classList.toggle('hidden');
+        if (!drawer.classList.contains('hidden')) {
+            input.focus();
+        }
+    });
+
+    closeBtn.addEventListener('click', () => {
+        drawer.classList.add('hidden');
+    });
+
+    // Chip triggers
+    document.querySelectorAll('.chip-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const query = btn.dataset.query;
+            sendChatMessage(query);
+        });
+    });
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const query = input.value.trim();
+        if (query) {
+            sendChatMessage(query);
+            input.value = '';
+        }
+    });
+}
+
+async function sendChatMessage(query) {
+    const messagesContainer = document.getElementById('chat-messages-container');
+    const suggestionsBlock = document.getElementById('chat-suggestions');
+    if (suggestionsBlock) suggestionsBlock.style.display = 'none';
+
+    // 1. Add User Message Bubble
+    const userMsg = document.createElement('div');
+    userMsg.className = 'chat-message user-message';
+    userMsg.innerHTML = `<div class="msg-bubble">${escapeHtml(query)}</div>`;
+    messagesContainer.appendChild(userMsg);
+
+    // 2. Add Loading Indicator
+    const botLoading = document.createElement('div');
+    botLoading.className = 'chat-message bot-message';
+    botLoading.innerHTML = `<div class="msg-bubble" style="color: #94a3b8;">🔍 Searching README.md chunks...</div>`;
+    messagesContainer.appendChild(botLoading);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    try {
+        const res = await fetch('/api/assistant/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: query })
+        });
+        const data = await res.json();
+
+        // 3. Format Response & Citation
+        const formattedReply = formatMarkdownText(data.reply);
+        let sourcesHtml = '';
+        if (data.sources && data.sources.length > 0) {
+            const s = data.sources[0];
+            sourcesHtml = `<div class="source-citation">📄 Grounded in ${s.file} &bull; ${s.title} (${s.relevance}% match)</div>`;
+        }
+
+        botLoading.innerHTML = `
+            <div class="msg-bubble">${formattedReply}</div>
+            ${sourcesHtml}
+        `;
+    } catch (err) {
+        botLoading.innerHTML = `<div class="msg-bubble" style="color: #f43f5e;">Error retrieving response from RAG engine.</div>`;
+    }
+
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatMarkdownText(text) {
+    return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`([^`]+)`/g, '<code style="font-family: monospace; background: rgba(255,255,255,0.08); padding: 1px 4px; border-radius: 3px;">$1</code>')
+        .replace(/\n/g, '<br>');
 }

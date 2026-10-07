@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 from engine.generator import TransactionGenerator, USER_PROFILES
 from engine.pipeline import FraudDetectionPipeline
+from engine.rag_assistant import MarkdownRAGAssistant
 
 app = FastAPI(title="Real-Time Fraud & Anomaly Detection Pipeline")
 
@@ -26,9 +27,10 @@ if not os.path.exists(TEMPLATES_DIR):
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-# Core Pipeline and Generator Singletons
+# Core Pipeline, Generator, and RAG Assistant Singletons
 generator = TransactionGenerator(fraud_probability=0.08)
 pipeline = FraudDetectionPipeline()
+rag_assistant = MarkdownRAGAssistant(os.path.join(BASE_DIR, "README.md"))
 
 # Streaming State
 class StreamState:
@@ -246,6 +248,15 @@ async def get_users():
 @app.get("/api/user/{user_id}/features")
 async def get_user_features(user_id: str):
     return pipeline.feature_store.get_user_state(user_id)
+
+
+class ChatRequest(BaseModel):
+    message: str
+
+
+@app.post("/api/assistant/chat")
+async def assistant_chat(req: ChatRequest):
+    return rag_assistant.answer_query(req.message)
 
 
 if __name__ == "__main__":
